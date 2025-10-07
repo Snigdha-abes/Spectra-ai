@@ -155,7 +155,7 @@ return (
     <main className="chat-main" role="main">
       {messages.length === 0 && (
         <div className="chat-welcome" aria-hidden="true">
-          <div className="chip">Aivora AI Assistant</div>
+          <div className="chip">Spectra AI Assistant</div>
           <h1>Welcome Back</h1>
           <p>Start a new conversation or continue where you left off</p>
         </div>
