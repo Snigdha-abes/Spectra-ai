@@ -4,49 +4,51 @@ const jwt = require("jsonwebtoken");
 const userModel = require("../models/user.model");
 const aiService = require("../services/ai.service");
 const messageModel = require("../models/message.model");
-const {createMemory,queryMemory}=require("../services/vector.service")
-//short term memory me short term bat yad rakhte hai par exact yad rakhte hai
-//long term me long term bat yad rakhte hai par exact yad nhi rakhte hai
-//vector array of number me convert krke rakhte hai jo k -1 se +1 ke beech me hoti hai
-//embedding se vector banta hai
-//similarity search se similar vector milta hai
-//vector database me vector store krte hai
-//ai model me vector feed krke response lete hai
-//length can vary like 1024,3072,768,4096,8192,32768 tokens
+const { createMemory, queryMemory } = require("../services/vector.service");
 
-function initSocketServer(httpserver) {
-  const io = new Server(httpserver, {});
-//Middleware to authenticate socket connections that only allows authenticated users to connect
-  io.use(async( socket, next) => {
+async function initSocketServer(httpServer) {
+  const io = new Server(httpServer, {
+    cors: {
+      origin: "http://localhost:5173",
+      credentials: true,
+      allowedHeaders: [ "Content-Type", "Authorization" ],
+    }
+  });
+
+  // Middlware to ensure that the socket connection is established only for authenticated users
+  io.use(async (socket, next) => {
     const cookies = cookie.parse(socket.handshake.headers?.cookie || "");
-    if (!cookies.token) {
+    const token = cookies.token;
+
+    if (!token) {
       return next(new Error("Authentication error: No token provided"));
     }
+
     try {
-      const decoded = jwt.verify(cookies.token, process.env.JWT_SECRET);
-      const user = await userModel.findById(decoded.id); // ✅ await
-      if (!user) return next(new Error("Authentication error: User not found"));
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+      const user = await userModel.findById(decoded.id);
+
       socket.user = user;
+
       next();
     } catch (error) {
-      return next(new Error("Authentication error: Invalid token"));
+      return next(new Error("Authentication error"));
     }
   });
 
   io.on("connection", (socket) => {
-    socket.on("ai-message", async (messagePayload) => {
-      console.log("Received ai-message:", messagePayload);
+    // console.log(`User connected: ${socket.user.email}`);
+    socket.on("user-message", async (messagePayload) => {
+      /*
+      messagePayload: {
+        chat: "chat_id",
+        content: "user message"
+      }
+      */
+    //  console.log("Message payload received:", messagePayload);
 
-      // Save user message
-    // const message=  await messageModel.create({
-    //     chat: messagePayload.chat,
-    //     user: socket.user._id,
-    //     content: messagePayload.content, // ✅ use content
-    //     role: "user",
-    //   });
-    //   const vectors=await aiService.generateVector(messagePayload.content)
-    //making vectors and creating message simultaneously 
-          const [message, vectors] = await Promise.all([
+      const [message, vectors] = await Promise.all([
         //store user message in mongodb
         messageModel.create({
           user: socket.user._id,
@@ -54,38 +56,22 @@ function initSocketServer(httpserver) {
           content: messagePayload.content,
           role: "user",
         }),
-        
+
         //generate vector for the user message
         aiService.generateVector(messagePayload.content),
       ]);
 
-    //     const memory=await queryMemory({
-    //     queryVector:vectors,
-    //     limit:3,
-    //     metadata:{
-    //       user:socket.user._id
-    //     }
-    //  })
+      //store the user message vector in pinecone
+      await createMemory({
+        messageID: message._id,
+        vectors,
+        metadata: {
+          user: socket.user._id,
+          chat: messagePayload.chat,
+          text: messagePayload.content,
+        },
+      });
 
-    //  await createMemory({
-    //     vectors,
-    //     messsageId:message._id,
-    //     metadata:{
-    //         chat:messagePayload.chat,
-    //         user:socket.user._id, 
-    //         text:messagePayload.content
-    //     }
-    //  })
-
-
-    
-    //   // Fetch chat history (optional)
-    //   const chatHistory = (await messageModel.find({
-    //      chat: messagePayload.chat 
-    //     }).sort({ createdAt: -1 }).limit(20).lean()).reverse();
-
-    //fetch chat history and memory in parallel
-    
       const [memory, chatHistory] = await Promise.all([
         //query pinecone i.e. vector database for related memories/vectors
         queryMemory({
@@ -105,7 +91,6 @@ function initSocketServer(httpserver) {
           .lean()
           .then((messages) => messages.reverse()),
       ]);
-      
 
       //short term memory
       const stm = chatHistory.map((item) => {
@@ -131,20 +116,15 @@ function initSocketServer(httpserver) {
         },
       ];
 
-     const response = await aiService.generateResponse([...ltm, ...stm]);
-      console.log(ltm[0])
-      console.log(stm)
+      const response = await aiService.generateResponse([...ltm, ...stm]);
 
-      // Save AI response
-      // const responseMessage=await messageModel.create({
-      //   chat: messagePayload.chat,
-      //   user: socket.user._id,
-      //   content: response, // ✅ must be content
-      //   role: "model",
-      // });
-      // const responseVectors=await aiService.generateVector(response)
+      // Emit the AI response back to the user
+      socket.emit("ai-response", {
+        content: response,
+        chat: messagePayload.chat,
+      });
 
-            const [responseMessage, responseVectors] = await Promise.all([
+      const [responseMessage, responseVectors] = await Promise.all([
         // Store the AI response message in MongoDB
         messageModel.create({
           chat: messagePayload.chat,
@@ -157,26 +137,18 @@ function initSocketServer(httpserver) {
         aiService.generateVector(response),
       ]);
 
-      
+      // Store the AI response vector in Pinecone
       await createMemory({
-        vectors:responseVectors,
-        messsageId:responseMessage._id,
-        metadata:{
-            chat:messagePayload.chat,
-            user:socket.user._id,
-            text:response
-        }
-    })
-
-      // Emit response
-      socket.emit("ai-response", {
-        content: response, // ✅ must be content
-        chat: messagePayload.chat,
+        messageID: responseMessage._id,
+        vectors: responseVectors,
+        metadata: {
+          user: socket.user._id,
+          chat: messagePayload.chat,
+          text: response,
+        },
       });
     });
   });
 }
 
 module.exports = initSocketServer;
-
- 

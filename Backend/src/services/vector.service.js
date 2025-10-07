@@ -1,26 +1,31 @@
-// Import the Pinecone library
-const { Pinecone } =require ('@pinecone-database/pinecone')
+const { Pinecone } = require('@pinecone-database/pinecone');
 
-// Initialize a Pinecone client with your API key
+const pc = new Pinecone({
+  apiKey: process.env.PINECONE_API_KEY,
+});
 
-const pc = new Pinecone({ apiKey: process.env.PINECONE_API_KEY });
-const cohortChatGptIndex = pc.Index('cohort-chat-gpt');
-async function createMemory({vectors,metadata,messsageId}){
-    await cohortChatGptIndex.upsert([{
-        id:messsageId,
-        values:vectors, 
-        metadata
-    }])
-}
+const GPTcloneIndex = pc.Index('cohort-chat-gpt');
 
-async function queryMemory({queryVector,limit=5,metadata}){
-    const data=await cohortChatGptIndex.query({
-        vector:queryVector,
-        topK:limit,
-        includeMetadata:true,
-        filter: metadata || undefined
+async function createMemory({ vectors, metadata, messageID }) {
+    await GPTcloneIndex.upsert([ {
+        id: messageID,
+        values: vectors,
+        metadata,
+    }]);
+};
 
+async function queryMemory({ queryVector, limit = 5, metadata }) {
+    const data = await GPTcloneIndex.query({
+        vector: queryVector,
+        topK: limit,
+        includeMetadata: true,
+        filter: metadata || undefined,
     })
+
     return data.matches;
-}
-module.exports={createMemory,queryMemory}
+};
+
+module.exports = {
+    createMemory,
+    queryMemory,
+};

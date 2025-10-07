@@ -1,0 +1,197 @@
+/* Container & flow */
+.messages {
+    flex: 1;
+    width: 100%;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 2rem 1rem;
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;     /* Firefox */
+}
+
+.messages::-webkit-scrollbar {
+    display: none;  /* Chrome, Safari and Opera */
+}
+
+.msg {
+    display: flex;
+    flex-direction: column;
+    max-width: 780px;
+    position: relative;
+    animation: messageSlide 0.3s ease-out;
+}
+
+@keyframes messageSlide {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.msg-user {
+    align-self: flex-end;
+}
+
+.msg-role {
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--color-text-muted);
+    margin-bottom: 4px;
+    font-weight: 600;
+}
+
+/* Bubble styling refined */
+.msg-bubble {
+    padding: 1rem 1.25rem;
+    border-radius: 1.5rem;
+    background: rgba(13, 13, 13, 0.8);
+    line-height: 1.6;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    font-size: var(--text-sm);
+    backdrop-filter: blur(10px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+    border: 1px solid rgba(30, 30, 30, 0.5);
+    transition: all 0.2s ease;
+}
+
+.msg-user .msg-bubble {
+    background: linear-gradient(135deg, #2563eb, #1e40af);
+    color: #ffffff;
+    border: none;
+    box-shadow: 0 4px 15px rgba(37, 99, 235, 0.2);
+}
+
+.minimal .msg-user .msg-bubble {
+    background: linear-gradient(135deg, #1e40af, #1e3a8a);
+    box-shadow: 0 4px 15px rgba(30, 64, 175, 0.15);
+}
+
+.msg-ai .msg-bubble {
+    background: rgba(13, 13, 13, 0.8);
+    border: 1px solid rgba(30, 30, 30, 0.5);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.msg-ai.pending .msg-bubble {
+    display: inline-flex;
+    gap: 6px;
+}
+
+.msg-error .msg-bubble {
+    border-color: var(--color-danger);
+    color: var(--color-danger);
+}
+
+/* Actions bar shown on hover / focus */
+.msg-actions {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 8px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity var(--transition-fast);
+}
+
+.msg:hover .msg-actions,
+.msg:focus-within .msg-actions {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.msg-actions button {
+    width: 32px;
+    height: 32px;
+    background: rgba(13, 13, 13, 0.8);
+    border: 1px solid rgba(30, 30, 30, 0.5);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 10px;
+    cursor: pointer;
+    color: #6a6a6a;
+    padding: 0;
+    backdrop-filter: blur(8px);
+    transition: all 0.2s ease;
+}
+
+.msg-actions button:hover {
+    background: rgba(21, 21, 21, 0.9);
+    color: #ffffff;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.msg-actions button:focus-visible {
+    outline: 2px solid rgba(255, 255, 255, 0.5);
+    outline-offset: 2px;
+}
+
+.msg-actions svg {
+    width: 16px;
+    height: 16px;
+    stroke-width: 1.75;
+}
+
+/* Subtle fade in for new AI messages */
+.msg-ai .msg-bubble {
+    animation: fadeIn .25s ease;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(4px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Typing dots */
+.typing-dots span {
+    width: 8px;
+    height: 8px;
+    background: linear-gradient(135deg, currentColor, rgba(255,255,255,0.5));
+    opacity: 0.6;
+    border-radius: 50%;
+    animation: pulse 1s infinite ease-in-out;
+    display: inline-block;
+    margin: 0 2px;
+    box-shadow: 0 0 8px rgba(255,255,255,0.2);
+}
+
+.typing-dots span:nth-child(2) {
+    animation-delay: 0.2s;
+}
+
+.typing-dots span:nth-child(3) {
+    animation-delay: 0.4s;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        transform: scale(0.8);
+        opacity: 0.2;
+    }
+    40% {
+        transform: scale(1);
+        opacity: 1;
+    }
+    60% {
+        transform: scale(0.9);
+        opacity: 0.7;
+    }
+}

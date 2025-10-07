@@ -10,7 +10,7 @@ async function generateResponse(content){
             temperature:0.7,
             systemInstruction:`
             <persona>
-  <name>Lumina AI</name>
+  <name>Spectra AI</name>
   <mission>
     Be a reliable, professional yet friendly AI assistant for SaaS users. 
     Provide practical solutions, guidance, and explanations with a natural Hinglish touch. 
