@@ -27,7 +27,7 @@ const Register = ({isAuthenticated}) => {
     //api call
     axios
       .post(
-        "http://localhost:3000/api/auth/register",
+        "https://spectra-ai-1.onrender.com/api/auth/register",
         {
           email: formData.email,
           fullName: {

@@ -37,7 +37,7 @@ const Chat = () => {
     if (title) title = title.trim();
     if (!title) return
 
-    const response = await axios.post("http://localhost:3000/api/chat", {
+    const response = await axios.post("https://spectra-ai-1.onrender.com/api/chat", {
       title
     }, {
       withCredentials: true
@@ -50,12 +50,12 @@ const Chat = () => {
   useEffect(() => {
 
     //get all chats of the user
-    axios.get("http://localhost:3000/api/chat", { withCredentials: true })
+    axios.get("https://spectra-ai-1.onrender.com/api/chat", { withCredentials: true })
       .then(response => {
         dispatch(setChats(response.data.chats.reverse()));
       })
 
-    const tempSocket = io("http://localhost:3000", {
+    const tempSocket = io("https://spectra-ai-1.onrender.com", {
       withCredentials: true,
     })
 
@@ -100,7 +100,7 @@ const Chat = () => {
 
   const getMessages = async (chatId) => {
 
-   const response = await  axios.get(`http://localhost:3000/api/chat/messages/${chatId}`, { withCredentials: true })
+   const response = await  axios.get(`https://spectra-ai-1.onrender.com/api/chat/messages/${chatId}`, { withCredentials: true })
 
   //  console.log("Fetched messages:", response.data.messages);
 
@@ -118,7 +118,7 @@ const Chat = () => {
     }
 
     try {
-      await axios.delete(`http://localhost:3000/api/chat/messages/${chatId}`, { withCredentials: true });
+      await axios.delete(`https://spectra-ai-1.onrender.com/api/chat/messages/${chatId}`, { withCredentials: true });
       // Remove the deleted chat from the state
       const updatedChats = chats.filter(chat => chat._id !== chatId);
       dispatch(setChats(updatedChats));

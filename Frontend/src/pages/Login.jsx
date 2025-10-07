@@ -33,7 +33,7 @@ const Login = ({ isAuthenticated }) => {
     // Simulate an API call
     axios
       .post(
-        "http://localhost:3000/api/auth/login",
+        "https://spectra-ai-1.onrender.com/api/auth/login",
         {
           email: formData.email,
           password: formData.password,

@@ -7,7 +7,7 @@ export const checkAuthStatus = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       // The browser automatically sends the httpOnly cookie with each request
-      const response = await axios.get('http://localhost:3000/api/auth/me', {
+      const response = await axios.get('https://spectra-ai-1.onrender.com/api/auth/me', {
         withCredentials: true, // Important to send cookies
       });
       return response.data.user; // The backend should return user data on success
@@ -23,7 +23,7 @@ export const logoutUser = createAsyncThunk(
   'user/logoutUser',
   async (_, { rejectWithValue }) => {
     try {
-      await axios.post('http://localhost:3000/api/auth/logout', {}, {
+      await axios.post('https://spectra-ai-1.onrender.com/api/auth/logout', {}, {
         withCredentials: true,
       });
     } finally {
