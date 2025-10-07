@@ -13,7 +13,7 @@ async function createChat(req, res) {
     res.status(201).json({
         message: 'Chat created successfully',
         chat: {
-            id: chat._id,
+            _id: chat._id,
             title: chat.title,
             lastActivity: chat.lastActivity,
             user: chat.user,
@@ -37,28 +37,23 @@ async function getChats(req, res) {
     })
 }
 
-// In src/controllers/chat.controller.js
-
+// Updated getMessages
 async function getMessages(req, res) {
     const user = req.user;
-    const { id } = req.params;
+    const { chatId } = req.params; // <- changed to match route
 
-    // --- SOLUTION ---
-    // Add this validation check at the top
-    if (!id || id === 'undefined') {
+    if (!chatId || chatId === 'undefined') {
         return res.status(400).json({ message: 'Chat ID is required.' });
     }
-    // --- END SOLUTION ---
 
     try {
-        const messages = await messageModel.find({ chat: id, user: user._id }).sort({ createdAt: 1 });
+        const messages = await messageModel.find({ chat: chatId, user: user._id }).sort({ createdAt: 1 });
 
         res.status(200).json({
             message: 'Messages fetched successfully',
             messages: messages
         });
     } catch (error) {
-        // Handle potential cast errors if an invalid ID format is still passed
         if (error.name === 'CastError') {
             return res.status(400).json({ message: 'Invalid Chat ID format.' });
         }
@@ -66,15 +61,13 @@ async function getMessages(req, res) {
     }
 }
 
+// Updated deleteChat
 async function deleteChat(req, res) {
     const user = req.user;
-    const { id } = req.params;
+    const { chatId } = req.params; // <- changed to match route
 
-    // Delete all messages associated with the chat
-    await messageModel.deleteMany({ chat: id, user: user._id });
-
-    // Delete the chat
-    await chatModel.deleteOne({ _id: id, user: user._id });
+    await messageModel.deleteMany({ chat: chatId, user: user._id });
+    await chatModel.deleteOne({ _id: chatId, user: user._id });
 
     res.status(200).json({
         message: 'Chat and associated messages deleted successfully'

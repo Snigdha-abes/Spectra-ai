@@ -8,8 +8,8 @@ const router = express.Router();
 
 router.post('/', authMiddleware.authUser, chatController.createChat);
 router.get('/', authMiddleware.authUser, chatController.getChats);
-router.get('/messages/:id', authMiddleware.authUser, chatController.getMessages);
-router.delete('/messages/:id', authMiddleware.authUser, chatController.deleteChat);
+router.get('/messages/:chatId', authMiddleware.authUser, chatController.getMessages);
+router.delete('/messages/:chatId', authMiddleware.authUser, chatController.deleteChat);
 
 
 
